@@ -1,6 +1,81 @@
 var STKit = (function(){
 
+  var EntriesLimitedCache = function(maxEntries) {
+    this.maxEntries = maxEntries;
+    this.cachedEntries = []; // [ {key: value} ]
+    this.cachedEntriesCount = 0;
+    this.cache = function(key, value) {
+      if(this.cachedEntriesCount >= maxEntries) {
+        this.cachedEntries.shift();
+        this.cachedEntriesCount--;
+      }
+//       var entry = Object.create(null);
+// console.log(key);
+// console.log(value);
+//       Object.defineProperty(entry,key,value);
+// console.log(entry);
+      this.cachedEntries.push({'key': key, 'value': value});
+      this.cachedEntriesCount++;
+    };
+    this.cachedValue = function(key,comparator) {
+      var filtered = this.cachedEntries.filter(function(cachedPair){
+        if(comparator) {
+          return comparator(cachedPair.key,key);
+        } else {
+          if(cachedPair.key == key) {
+            return true;
+          }
+        }
+        });
+      if(filtered.length > 0) {
+        var last = filtered.pop();
+        // console.log(last);
+        return last.value;
+      } else {
+        return null;
+      }
+    };
+  };
+
   return {
+
+    /**
+    @function memoized
+    @param fn is function to be memoized
+    @returns memoized implementation of given function
+    @throws string object if given argument is not a function
+    @todo check the original function for return non-undefined
+    */
+    memoized: function(fn) {
+      if(typeof fn !== 'function') {
+        throw ('argument "' + arguments[0] + '" provided is not a function');
+      }
+      var cache = new EntriesLimitedCache(2);
+
+      var arraysComparator = function(array1, array2) {
+        return array1.length == array2.length && array1.every(function(element, index) {
+          return element === array2[index];
+        });
+      };
+
+      // var args = arguments;
+      return function() {
+        console.log(cache);
+        // keys for cache will be arrays, so arrays comparator is provided to
+        // check for cache hit
+        var cachedValue = cache.cachedValue(
+          Array.prototype.slice.call(arguments), arraysComparator);
+        if(cachedValue) {
+          console.log('cache hit');
+          return cachedValue;
+        } else {
+          var newCached = fn.apply(this,arguments);
+          cache.cache(Array.prototype.slice.call(arguments), newCached);
+          return newCached;
+        }
+      };
+    },
+
     /**
     @function debehaviorize
     @param some object to debehaviorize
@@ -30,10 +105,13 @@ var STKit = (function(){
     @returns boolean whether given object is an array-like
     */
     isArrayLike: function (obj) {
-      return Object.prototype.hasOwnProperty.call(obj,'length');
+      return Object.prototype.hasOwnProperty.call(obj,'length') &&
+        typeof obj.length === 'number';
     },
 
+
   };
+
 })();
 
 /**
@@ -72,7 +150,16 @@ IIFE is named hereinafter to show designation
 
   [],
 
-  42
+  42,
+
+  (function(){
+    var test = Object.create(null);
+    test[0] = 1;
+    test[1] = 2;
+    test.length = 'some string';
+    return test;
+  })(),
+
 ].forEach(
 (function testIsArrayLike(test){
   console.log('**** Test is array like *****');
@@ -88,3 +175,22 @@ IIFE is named hereinafter to show designation
   }
   console.log('\n\n');
 }));
+
+// TODO semicolonson instead
+function foo(a) {
+  console.log('this is foo(' + a + ')');
+  return a;
+}
+
+foo('x');
+foo('x');
+try {
+var memfoo = STKit.memoized(foo);
+memfoo(1);
+memfoo(2);
+memfoo(2);
+memfoo(3);
+memfoo(3);
+} catch(e) {
+  console.log(e);
+}

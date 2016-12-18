@@ -28,7 +28,7 @@ function EntriesLimitedCache(maxEntries) {
 
 
 function memoized(fn) {
-  this.cache = new EntriesLimitedCache(10);
+  var cache = new EntriesLimitedCache(10);
   // var args = arguments;
   return function() {
     var cachedValue = cache.cachedValue(arguments);
