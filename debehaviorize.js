@@ -1,4 +1,4 @@
-;
+
 
 // var debug = 0;
 
@@ -30,34 +30,34 @@ Followed two functions copied from https://gist.github.com/pbakondy/e27b08f20cc3
 function debehaviorize(some) {
   if(!(some instanceof Object)) {
     // console.log(some + ' is not an instance of Object, it is ' + typeof some);
-    return [];
+    // return [];
+    return some;
   }
   // var ret = JSON.parse(JSON.stringify(some));
   // var ret = copyObject(some,true);
-  var ret = [];
+  var ret = {};
   for(var propName in some) {
     if(some.hasOwnProperty(propName)) {
       // console.log('loop:' + propName + ' is ' + (typeof ret[propName]));
       if(typeof some[propName] === 'function') {
-        console.log(propName + ' is a function in ' + some)
+        // console.log(propName + ' is a function in ' + some);
         if(Object.isFrozen(some)) {
           throw ' is frozen, can\'t debehaviorize';
         }
         if(Object.isSealed(some)) {
           throw ' is sealed, can\'t debehaviorize';
         }
-        ret.push(some[propName]);
-        console.log(ret);
-        delete some[propName];
+        // ret.push(some[propName]);
+        // console.log(ret);
+        // delete some[propName];
       } else {
         // console.log('trying to debehaviorize ' + propName);
         try {
           // ret[propName] = debehaviorize(ret[propName]);
-          ret.concat(debehaviorize(some[propName]));
+          ret[propName] = debehaviorize(some[propName]);
         } catch(e) {
           // prepending outer property name
-          e = '.' + propName + e;
-          throw e;
+          throw ('.' + propName + e);
         }
       }
     }
@@ -72,12 +72,12 @@ var a = { n: 1, a: 'a',
 console.log(a);
 // console.log('"a":' + JSON.stringify(a));
 try {
-var behavior = debehaviorize(a);
+var da = debehaviorize(a);
 console.log('After debehaviorizing');
-console.log('a:');
+console.log('original object:');
 console.log(a);
-console.log('behavior:');
-console.log(behavior);
+console.log('debehaviorized object:');
+console.log(da);
 } catch(e) {
   console.log('Exception occured while debehaviorizing ' + JSON.stringify(a) + '\n: ' + e);
 }
