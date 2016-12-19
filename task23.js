@@ -1,3 +1,6 @@
+/**
+Students Kit module
+*/
 var STKit = (function(){
 
   /**

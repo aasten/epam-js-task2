@@ -1,3 +1,6 @@
+/**
+Students Kit module
+*/
 module.exports = (function(){
 
   /**
