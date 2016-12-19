@@ -92,8 +92,8 @@ var STKit = (function(){
 
     /**
     @function memoized
-    @param fn is function to be memoized
-    @param maxEntries is an optional parameter of cache capacity
+    @param {fn} is function to be memoized
+    @param {maxEntries} is an optional parameter of cache capacity
     @returns memoized implementation of given function
     @throws string object if given argument is not a function
     @todo check the original function for return non-undefined
@@ -129,7 +129,7 @@ var STKit = (function(){
 
     /**
     @function debehaviorize
-    @param some object to debehaviorize
+    @param {some} object to debehaviorize
     @returns debehaviorized object
     */
     debehaviorize: function (some) {
@@ -152,7 +152,7 @@ var STKit = (function(){
 
     /**
     @function isArrayLike
-    @param obj is object to check
+    @param {obj} is object to check
     @returns boolean whether given object is an array-like
     */
     isArrayLike: function (obj) {
@@ -160,14 +160,13 @@ var STKit = (function(){
         typeof obj.length === 'number';
     },
 
-
     /**
     @function parseSemicolonSONobject
     parsing js objects as followed:
     @example
     ";key,value;methodName,|return true|;" => { key: 'value',  method: function() {return true;} }
     ";key,value;methodName,|function (a) { return a + 1; }|;" => { key: 'value',  method: function(a) {return a + 1;} }
-    @param str semicolonSON string
+    @param {str} semicolonSON string
     @returns js object from given semicolonSON string
     */
     parseSemicolonSONobject: function(str) {
