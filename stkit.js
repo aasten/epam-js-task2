@@ -37,6 +37,55 @@ var STKit = (function(){
     };
   };
 
+  var parseSemicolonSONdebehaviorized = function (semicolonSONstr) {
+    var str = semicolonSONstr;
+    // trim leading spaces and empty semicolons
+    str = str.replace(/^[\s;]*/,'');
+    // trim trailing spaces and empty semicolons
+    str = str.replace(/[\s;]*$/,'');
+    str = str.replace(/,/g,':'); // , -> :
+    str = str.replace(/;/g,','); // ; -> ,
+    str = str.replace(/([a-zA-Z_][0-9a-zA-Z\-_]*)/g,'"$1"'); // quoting lexeme with non-digit first char
+    return JSON.parse('{' + str + '}');
+  };
+
+  var semicolonSONwithRemovedFuncDeclarations = function(str) {
+    return str.replace(/;([^,]+),\|(.*)\|/g,'');
+  };
+
+  /**
+  Find and return bodies of non-argument functions in given string in "SemicolonSON"
+  format.
+  @returns array containing arguments for apply the Function constructor.
+  Earch arguments entry is array itself containing function body (as found in semicolonSON)
+  as last element. Arguments for the function body prepends the body, if threy are found.
+  */
+  var getFunctionsFromSemicolonSON = function(str) {
+    var functionDeclarations = [];
+    str.replace(/;([^,]+),\|(.*)\|/g,function(match,methodName,body,offset,string){
+      functionDeclarations.push({'methodName': methodName,'body': body});
+    });
+
+    var ret = [];
+    functionDeclarations.forEach(function(value){
+      var entry = [];
+      var match = value.body.match(/function[\s]*\(([^)]*)\)[\s]{(.*)}/);
+      if(match) {
+        // omit match[0] which is whole match. Put groups values only
+        // args list
+        entry.push(match[1]);
+        // body
+        entry.push(match[2]);
+      } else {
+        // "function(var){body}" not found, consider whole expression as body
+        entry.push(value);
+      }
+      ret.push({'methodName': value.methodName, 'entry': entry});
+    });
+
+    return ret;
+  };
+
   return {
 
     /**
@@ -110,9 +159,30 @@ var STKit = (function(){
     },
 
 
+    parseSemicolonSONobject: function(semicolonSONstr) {
+      var str = semicolonSONstr;
+      // array [[args-endings-with-body]]
+      var argFuncBodies = getFunctionsFromSemicolonSON(str);
+console.log(1);
+console.log(argFuncBodies);
+console.log(semicolonSONwithRemovedFuncDeclarations(str));
+      // parsing string from which function declarations are removed:
+      var retObj = parseSemicolonSONdebehaviorized(
+        semicolonSONwithRemovedFuncDeclarations(str));
+
+      argFuncBodies.forEach(function(funcDecl){
+        retObj[funcDecl.methodName] = Function.apply(null,funcDecl.entry);
+      });
+      return retObj;
+    },
+
+
   };
 
 })();
+
+
+// -------------- testing ------------------------------------------------------
 
 /**
 IIFE is named hereinafter to show designation
@@ -194,3 +264,17 @@ memfoo(3);
 } catch(e) {
   console.log(e);
 }
+
+// array of objects to test
+[
+  ';key,value;methodName,|return true|;',
+  ';key,value;methodName,|function (a) { return a + 1; }|;'
+].forEach(
+(function testSemicolonSONparse(test){
+  console.log('**** Test semicolonSON *****');
+  console.log(test);
+  var parsedObj = STKit.parseSemicolonSONobject(test);
+  console.log('"' + test + '" \n=> ');
+  console.log(parsedObj);
+  console.log('\n\n');
+}));
