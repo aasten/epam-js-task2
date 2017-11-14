@@ -89,9 +89,9 @@ IIFE is named hereinafter to show designation
     (endRaw.getTime() - beginRaw.getTime()) + 'ms');
 
   try {
-  var memoizedSemicolonSONparse = STKit.memoized(testSemicolonSONparse);
+  STKit.parseSemicolonSONobject = STKit.memoized(STKit.parseSemicolonSONobject);
   var beginMemoized = new Date();
-  sampleSemicolonSONs.forEach(memoizedSemicolonSONparse);
+  sampleSemicolonSONs.forEach(testSemicolonSONparse);
   var endMemoized = new Date();
   console.log('--------- memoized parser function done in ' +
     (endMemoized.getTime() - beginMemoized.getTime()) + 'ms');
@@ -126,6 +126,18 @@ IIFE is named hereinafter to show designation
 
   console.log('unmemoized fibonacci done in ' +
     (endRaw.getTime() - beginRaw.getTime()) + 'ms');
+
+  console.log('second attempt, checking processor caching etc...');
+  beginRaw = new Date();
+
+  console.log('unmemoizedFibonacci(' + fibFor + ')=' + testFunc(fibFor));
+
+  endRaw = new Date();
+
+  console.log('unmemoized fibonacci done in ' +
+    (endRaw.getTime() - beginRaw.getTime()) + 'ms');
+
+
 
   try {
   testFunc = STKit.memoized(testFunc,fibFor);
