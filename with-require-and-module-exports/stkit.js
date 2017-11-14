@@ -91,7 +91,13 @@ module.exports = (function(){
   return {
 
     /**
-    @function memoized
+    @function memoized Caching results of single function invokations with
+    different arguments values. This implementation remembers arguments used
+    and if memoized is called with known arguments values, returns the cached
+    result. It arguments values was not remembered before, the served function
+    (provided) is called and the result is cached. Optional cache size parameter
+    is taken, when limit is reached, old values are replaced with new ones
+    @see EntriesLimitedCache
     @param {fn} is function to be memoized
     @param {maxEntries} is an optional parameter of cache capacity
     @returns memoized implementation of given function
